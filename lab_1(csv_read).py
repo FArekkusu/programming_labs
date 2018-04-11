@@ -10,5 +10,4 @@ students = students[:len(students) * 2 // 5]
 
 with open("filtered_students.csv", "w", encoding="utf-8", newline="") as new_file:
     content = csv.writer(new_file)
-    for student in students:
-        content.writerow([student[0], str(student[1])])
+    for student in students: content.writerow([student[0], str(student[1])])
