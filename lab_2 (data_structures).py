@@ -1,14 +1,14 @@
 from operator import *
 import re
 
-def calculate(expression):
-    expression = expression.split()[::-1]
-    stack, operators = [], {"+":add, "-":sub, "*":mul, "/":truediv, "^":pow}
-    for i in range(len(expression)):
-        stack.append(expression.pop())
-        if stack[-1] in operators:
+def calculate(exp):
+    exp = exp.split()[::-1]
+    stack, ops = [], {"+":add, "-":sub, "*":mul, "/":truediv, "^":pow}
+    for i in range(len(exp)):
+        stack.append(exp.pop())
+        if stack[-1] in ops:
             o, s, f = stack.pop(), float(stack.pop()), float(stack.pop())
-            stack.append(operators[o](f, s))
+            stack.append(ops[o](f, s))
     return float(stack[-1])
 
 def postfix(infix):
