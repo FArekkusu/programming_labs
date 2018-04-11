@@ -12,7 +12,7 @@ def calculate(exp):
     return float(stack[-1])
 
 def postfix(infix):
-    infix = filter(lambda x: x, re.split(r"(\+|-|\*|/|\^|\(|\))", infix))
+    infix = filter(lambda x: x, re.split(r"(\+|-|\*|/|\^|\(|\))", infix.replace(" ", "")))
     o, s, p = [], [], {"(":1, "^":2, "*":3, "/":3, "+":4, "-":4}
     for i in infix:
         if i.isdigit(): o.append(i)
