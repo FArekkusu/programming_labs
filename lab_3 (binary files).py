@@ -3,7 +3,7 @@ def picture_magnify(source, target, times):
         bytes = bytearray(image.read())
         header, body = bytes[:54], bytes[54:]
 
-    width, height = sum(header[18:22]), sum(header[22:26])
+    width, height = sum(header[18+i] * 2**(8*i) for i in range(4)), sum(header[22+i] * 2**(8*i) for i in range(4))
     padding = width % 4
     new_width, new_height = width * times, height * times
     new_padding = new_width % 4
