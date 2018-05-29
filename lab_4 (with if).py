@@ -2,12 +2,28 @@ import re
 import operator as op
 
 class AST:
+    def __init__(self, expression):
+        self.expression = expression
+        self.branches = []
+    
+    def __repr__(self):
+        self.evaluate()
+        return "{}".format("\n".join(x.__repr__() for x in self.branches))
+
+    def evaluate(self):
+        self.branches = list(filter(lambda x: x, re.split(r";\n*", self.expression.strip())))
+        for i in range(len(self.branches)):
+            self.branches[i] = Branch(self.branches[i])
+            self.branches[i].evaluate()
+
+class Branch:
     def __init__(self, expression=""):
         self.expression = expression
-        self.root = None
+        self.root = self.result = None
 
     def __repr__(self):
-        return "[ {} ]  =  {}".format(self.expression, self.evaluate()) if self.expression else "Missing expression"
+        self.evaluate()
+        return ">>>{}\n{}".format(self.expression, self.result)
 
     def build(self):
         if not self.expression: return None
@@ -62,7 +78,7 @@ class AST:
 
     def evaluate(self):
         self.root = self.build()
-        return self.root.evaluate() if self.root else None
+        self.result = self.root.evaluate() if self.root else None
 
 class Node:
     def __init__(self, item, precedence=0):
@@ -70,6 +86,9 @@ class Node:
         self.precedence = precedence
         self.parent = None
         self.children = []
+
+    def __repr__(self):
+        return str(self.item)
 
     def evaluate(self):
         try:
@@ -90,10 +109,13 @@ prec = {"+":1, "-":1, "*":2, "/":2, "^":3, "=":4, "IF":5}
 n_of_c = {"+":2, "-":2, "*":2, "/":2, "^":2, "=":2, "IF":3}
 ops = {"+":op.add, "-":op.sub, "*":op.mul, "/":op.truediv, "^":op.pow, "=":memorize, "IF":check}
 
-ast = AST("IF IF (x = (1 - 1)) 1 0 IF 0 5 3 IF 1 (2^3 * -(2 + 16 * x)) 10")
+expression = """
+x = 1;
+y = 10;
+z = 3;
+IF x y z;
+"""
 
-# IF {IF (x = 0) THEN 1 ELSE 0}
-# THEN {IF 0 THEN 5 ELSE 3}
-# ELSE {IF 1 THEN -16 ELSE 10}
+ast = AST(expression)
 
 print(ast)
