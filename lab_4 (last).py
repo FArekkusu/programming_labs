@@ -12,9 +12,11 @@ class AST:
     def build(self):
         if not self.expression: return None
         queue = list(filter(lambda x: x, re.split(r"(\+|-|\*|/|\^|=|\(|\))", re.sub(r"(--)+", "--", self.expression.replace(" ", "")))))
-        for i in range(len(queue)):
+        i = 0
+        while i < len(queue):
             if queue[i] == "-" and (i == 0 or queue[i-1] in list(ops) + ["("]):
                 queue[i:i+1] = ["-1", "*"]
+            i += 1
         depth = 0
         prev = None
         for item in queue:
