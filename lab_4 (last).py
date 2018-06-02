@@ -15,7 +15,15 @@ class AST:
         i = 0
         while i < len(queue):
             if queue[i] == "-" and (i == 0 or queue[i-1] in list(ops) + ["("]):
-                queue[i:i+1] = ["-1", "*"]
+                if i > 0 and queue[i-1] == "(":
+                    queue[i:i+1] = ["-1", "*"]
+                else:
+                    if queue[i+1] == "(":
+                        j = find_pair(i+1, queue)
+                        queue[j:j+1] = [")", ")"]
+                    else:
+                        queue[i+1:i+2] = [queue[i+1], ")"]
+                    queue[i:i+1] = ["(", "-1", "*"]
             i += 1
         depth = 0
         prev = None
@@ -67,6 +75,13 @@ class Node:
             except: return float(ops[self.item](self.left.evaluate(), self.right.evaluate()))
         except:
             return self.item
+
+def find_pair(x, a):
+    s = 0
+    for i in range(x, len(a)):
+        if a[i] == "(": s += 1
+        if a[i] == ")": s -= 1
+        if not s: return i
 
 def memorize(a, b):
     var[a] = var.get(b, float(b))
