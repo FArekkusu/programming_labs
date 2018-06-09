@@ -1,0 +1,49 @@
+typedef struct _array_minmax_t {
+  int min;
+  int max;
+  int *content;
+  int size;
+} array_minmax_t;
+
+array_minmax_t *array_minmax_create(unsigned int length, int *input_array) {
+  array_minmax_t *array = (array_minmax_t *) malloc(sizeof(array_minmax_t));
+  array->content = (int *) realloc(array->content, sizeof(int) * length);
+  array->size = length;
+  int min = input_array[0];
+  int max = input_array[0];
+  for (int i = 0; i < length; i++) {
+    array->content[i] = input_array[i];
+    if (input_array[i] < min) {
+      min = input_array[i];
+    }
+    if (input_array[i] > max) {
+      max = input_array[i];
+    }
+  }
+  array->min = min;
+  array->max = max;
+  return array;
+}
+
+void array_minmax_add(array_minmax_t *array, int number) {
+  array->content = (int *) realloc(array->content, sizeof(int) * (++array->size));
+  array->content[array->size-1] = number;
+  if (number > array->max) {
+    array->max = number;
+  }
+  if (number < array->min) {
+    array->min = number;
+  }
+}
+
+int array_minmax_get_min(array_minmax_t *array) {
+  return array->min;
+}
+
+int array_minmax_get_max(array_minmax_t *array) {
+  return array->max;
+}
+
+void array_minmax_destroy(array_minmax_t *array) {
+  free(array);
+}
