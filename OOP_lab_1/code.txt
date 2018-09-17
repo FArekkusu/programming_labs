@@ -1,0 +1,152 @@
+class Chessboard:
+    """
+    Конструктор (метод ініціалізації) екземплярів класу "Шахова дошка".
+    Вхід: рядок із координатами коня
+    Вихід: відсутній
+    """
+    def __init__(self, position):
+        self.__A = [[None] * 8 for _ in range(8)] # згенерувати матрицю розміром 8х8
+        self.knight_moves = ((2, 1), (2, -1), (-2, 1), (-2, -1), # перелік можливих змін координат
+                            (1, 2), (1, -2), (-1, 2), (-1, -2))  # по осях X та Y
+        self.x, self.y = normalize_position(position)
+        self.__A[self.x][self.y] = 0 # "встановити" коня у вказану точку
+    
+    """
+    Метод, що повертає шахову дошку у вигляді масиву масивів кількості кроків до певної точки.
+    Вхід: відсутній
+    Вихід: копія шахової дошки
+    """
+    def get_board(self):
+        return [line[:] for line in self.__A]
+
+    """
+    Метод для знаходження найкоротшого шляху у всі точки шахової дошки.
+    Вхід: відсутній
+    Вихід: відсутній
+    """
+    def fill_up(self):
+        """
+        Допоміжна функція для пошуку точок, в які можна попасти із координати, що розгяладається.
+        Вхід: кортеж із координатою і відстанню точки від коня
+        Вихід: значення True або False
+        """
+        def valid(tpl):
+            row, col, _ = tpl
+            in_range = 0 <= row < 8 and 0 <= col < 8
+            return in_range and self.__A[row][col] is None
+        visited = [(self.x, self.y, 0)] # черга відмічених точок
+        for i in range(64):
+            x, y, n = visited[i]
+            # знайти всі точки, в які може переміститися кінь, і які наявні на дошці
+            possible = [*filter(valid, ((x+dx, y+dy, n+1) for dx, dy in self.knight_moves))]
+            # відмітити точки на дошці
+            for x0, y0, m in possible:
+                self.__A[x0][y0] = m
+            # додати відмічені точки до черги
+            visited.extend(possible)
+    
+    """
+    Рекурсивний метод для знаходження зворотнього шляху від однієї координати до іншої. Рекурсія
+    припиняється при досягненні точки, в якій знаходиться кінь.
+    Вхід: координата у вигляді кортежу
+    Вихід: масив масивів із найкоротшими шляхами із довільної координати до місцезнаходження коня
+    """
+    def get_path(self, start):
+        """
+        Допоміжна функція для пошуку точок, із яких можна попасти в координату, що розгяладається.
+        Вхід: кортеж із координатою і відстанню точки від коня
+        Вихід: значення True або False
+        """
+        def closer(tpl):
+            row, col, m = tpl
+            in_range = 0 <= row < 8 and 0 <= col < 8
+            return in_range and self.__A[row][col] == m
+        x, y, n = start
+        stringified = stringify_position(*start)
+        # знайти всі існуючі на дошці точки, з яких можна потрапити в точку, що розглядається
+        back_tracks = filter(closer, ((x+dx, y+dy, n-1) for dx, dy in self.knight_moves))
+        # додати точку, що розглядається до кожного шляху, знайденого під час рекурсії
+        paths = [self.get_path(point)[0] + [stringified] for point in back_tracks]
+        return paths or [[stringified]]
+    
+    """
+    Метод для знаходження найкоротших шляхів коня до країв дошки.
+    Вхід: відсутній
+    Вихід: масив із масивами усіх найкоротших шляхів коня до країв дошки, де шлях - масив із
+           координатами кроків від точки відліку до краю
+    """
+    def get_shortest_paths(self):
+        self.fill_up()
+        result = []
+        # для кожної точки: якщо вона не є початкова, знайти найкоротший шлях до неї
+        for coord in ["A1", "A8", "H1", "H8"]:
+            x, y = normalize_position(coord)
+            if self.__A[x][y]:
+                result.append(self.get_path((x, y, self.__A[x][y])))
+        return result
+
+
+"""
+Функція конвертації координати шахової дошки "рядок у кортеж".
+Вхід: координата у вигляді рядка
+Вихід: координата у вигляді кортежу
+"""
+def normalize_position(position):
+    letter, number = list(position)
+    return (8 - int(number), ord(letter.upper()) - 65)
+
+"""
+Функція конвертації координати шахової дошки "кортеж у рядок".
+Вхід: обов'язкові аргументи - координати Х та Y; необов'язкові аргументи на випадок, якщо
+      разом із координатою подається її "відстань" від координати розташування коня
+Вихід: координата у вигляді рядка
+"""
+def stringify_position(x, y, *args):
+    return "{}{}".format(chr(65 + y), 8 - x)
+
+"""
+Функція для покращеного показу шляху до краю дошки.
+Вхід: масив координат точок на дошці
+Вихід: рядок, що візуалізує шлях краю дошки
+"""
+def visualize_path(path):
+    return "  ->  ".join(path)
+
+"""
+Функція для показу дошки із нанесеним на неї шляхом.
+Вхід: масив координат точок на дошці
+Вихід: рядок, що візуалізує дошку, із нанесеними на неї точками
+"""
+def visualize_path_on_board(path):
+    # згенерувати матрицю пробілів розміром 8х8
+    board = [[" "] * 8 for _ in range(8)]
+    # замінити всі точки, що є частинами шляху відповідним символом:
+    # "K" ("knight") - кінь
+    # i - номер кроку
+    # "T" ("target") - ціль
+    for i, coord in enumerate(path):
+        x, y = normalize_position(coord)
+        s = ["K", i, "T"][(i > 0) + (i == len(path) - 1)]
+        board[x][y] = s
+    full_lines = []
+    # далі: конвертувати матрицю у рядок, що має вигляд шахової дошки з розміткою
+    for i, line in enumerate(board):
+        full_line = "|".join(" {} ".format(x) for x in line) + " {}".format(8 - i)
+        full_lines.append(full_line)
+    non_empty_line = "\n{}\n".format("+".join(["-" * 3] * 8))
+    board_without_letters = non_empty_line.join(full_lines)
+    letters = " ".join(" {} ".format(chr(x)) for x in range(65, 73))
+    board = board_without_letters + "\n\n" + letters
+    return board
+
+
+for x in Chessboard("B1").get_shortest_paths():
+    for y in x:
+        print(visualize_path(y), "\n")
+        print(visualize_path_on_board(y), "\n" * 3)
+
+
+
+
+
+https://repl.it/repls/CurlyHelplessDeletions
