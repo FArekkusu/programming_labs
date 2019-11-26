@@ -1,3 +1,5 @@
+import re
+
 from specification import Specification
 from datetime import datetime
 from operator import eq, lt, gt
@@ -21,26 +23,9 @@ Less = comparison_specification_factory(lt)
 Greater = comparison_specification_factory(gt)
 
 
-class Started(Specification):
+class Released(Specification):
     def check(self, row):
-        field = "start_time"
-        today = datetime.today()
-        return (Less(field, today, function=parse_date) | Equals(field, today, function=parse_date)).check(row)
-
-
-class Finished(Specification):
-    def check(self, row):
-        return Less("end_time", datetime.today(), function=parse_date).check(row)
-
-
-class Paid(Specification):
-    def check(self, row):
-        return Equals("paid", True).check(row)
-
-
-class AwaitingPayment(Specification):
-    def check(self, row):
-        return (~Paid()).check(row)
+        return Less("release_date", datetime.today(), function=parse_date).check(row)
 
 
 class Always(Specification):
@@ -50,3 +35,8 @@ class Always(Specification):
 
 def parse_date(value):
     return datetime.strptime(value, "%d-%m-%Y")
+
+
+def normalize_string(s):
+    return re.sub("[^\w-]", "", s.lower()).replace("-", " ")
+

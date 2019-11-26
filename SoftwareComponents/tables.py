@@ -15,4 +15,3 @@ def table_factory(name):
 
 
 Movies = table_factory("movies")
-Reservations = table_factory("reservations")
