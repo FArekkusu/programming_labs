@@ -1,3 +1,5 @@
+import re
+
 from specification import Specification
 from datetime import datetime
 from operator import eq, lt, gt
@@ -33,3 +35,7 @@ class Always(Specification):
 
 def parse_date(value):
     return datetime.strptime(value, "%d-%m-%Y")
+
+
+def normalize_string(s):
+    return re.sub("[^\w -]", "", s.lower()).replace("-", " ")
