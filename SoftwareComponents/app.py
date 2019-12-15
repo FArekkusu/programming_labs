@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from time import sleep
 from flask import Flask, jsonify, request
 from flask_caching import Cache
-from services import make_requests_to_services
+from services import make_requests_to_services, FETCH_HANDLERS
 from database import Connection
 from filters import Always, Greater, Less, Equals, parse_date, normalize_string
 from qb_facade import QBFacade
@@ -13,7 +13,7 @@ from qb_facade import QBFacade
 app = Flask(__name__)
 app.config.from_mapping({"DEBUG": True, "CACHE_TYPE": "simple", "CACHE_DEFAULT_TIMEOUT": 60 * 60 * 25})
 cache = Cache(app)
-cinema_db = Connection("../main_service.db")
+cinema_db = Connection("main.db")
 next_update_at = datetime.now()
 update_in_process = False
 
@@ -24,15 +24,15 @@ def update_cache():
 
     while 1:
         if not update_in_process and datetime.now() >= next_update_at:
-            next_update_at = (datetime.now() + timedelta(days=1)).replace(hour=12, minute=0, second=0, microsecond=0)
             update_in_process = True
+            next_update_at = datetime.now() + timedelta(hours=2)
             print(f"START AT {datetime.now().strftime('%H:%M:%S')}")
             movies = QBFacade.list_movies(Always())
             for row in movies:
                 row["service"] = 0
-            movies.extend(make_requests_to_services())
             movies.sort(key=lambda x: x["name"])
             cache.set("movies", movies)
+            make_requests_to_services(cache)
             print(f"END AT {datetime.now().strftime('%H:%M:%S')}")
             print(f"NEXT UPDATE AT {next_update_at}")
             update_in_process = False
@@ -58,6 +58,8 @@ def list_movies():
         function = parse_date if re.match(r"(\d\d-){2}\d{4}$", value) else int if re.match(r"\d+$", value) else normalize_string
         condition &= filter_condition(field, function(value), function=function)
     movies = cache.get("movies") or []
+    for (_, key) in FETCH_HANDLERS:
+        movies.extend(cache.get(key) or [])
     result = [{k: row[k] for k in "id name price service".split()}
               for row in movies if condition.check(row)]
     return jsonify(result)
