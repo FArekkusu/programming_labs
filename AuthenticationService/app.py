@@ -3,12 +3,10 @@ import uuid
 from datetime import datetime, timedelta
 from database import Connection
 import sqlite3
-from filters import Always, Greater, Less, Equals, parse_date, normalize_string
-from qb_facade import QBFacade
 
 
 app = Flask(__name__)
-cinema_db = Connection("../main_service.db")
+cinema_db = Connection("auth.db")
 
 
 @app.route("/")
@@ -36,15 +34,7 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
-    now = datetime.now()
     formatted_now = datetime.now().strftime("%H:%M %d-%m-%Y")
-    token = request.form.get("token")
-    if token is not None:
-        with Connection() as c:
-            rows = c.execute("SELECT id, last_auth FROM users WHERE token = ?", (token, )).fetchall()
-            if rows and now - datetime.strptime(rows[0][1], "%H:%M %d-%m-%Y") < timedelta(hours=24):
-                c.execute("UPDATE users SET last_auth = ? WHERE id = ?", (formatted_now, rows[0][0]))
-                return jsonify({"id": rows[0][0], "token": token}), 200
     user_login = request.form.get("login")
     password = request.form.get("password")
     if None not in (user_login, password):
@@ -53,7 +43,20 @@ def login():
             if rows:
                 token = str(uuid.uuid4())
                 c.execute("UPDATE users SET token = ?, last_auth = ? WHERE id = ?", (token, formatted_now, rows[0][0]))
-                return jsonify({"id": rows[0][0], "token": token}), 200
+                return token, 200
+
+
+@app.route("/get_user", methods=["POST"])
+def get_user():
+    now = datetime.now()
+    formatted_now = now.strftime("%H:%M %d-%m-%Y")
+    token = request.form.get("token")
+    if token is not None:
+        with Connection() as c:
+            rows = c.execute("SELECT id, last_auth FROM users WHERE token = ?", (token, )).fetchall()
+            if rows and now - datetime.strptime(rows[0][1], "%H:%M %d-%m-%Y") < timedelta(hours=24):
+                c.execute("UPDATE users SET last_auth = ? WHERE id = ?", (formatted_now, rows[0][0]))
+                return jsonify({"id": rows[0][0]}), 200
     return "Failed to log in", 401
 
 
