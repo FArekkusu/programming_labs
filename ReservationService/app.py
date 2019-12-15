@@ -7,17 +7,12 @@ from qb_facade import QBFacade
 
 
 app = Flask(__name__)
-cinema_db = Connection("../main_service.db")
+cinema_db = Connection("reservations.db")
 
 
 @app.route("/")
 def home():
     return "Running"
-
-
-@app.route("/register", methods=["POST"])
-def register():
-    return requests.post("http://127.0.0.1:5004/register", data=request.form).content
 
 
 @app.route("/list", methods=["POST"])
