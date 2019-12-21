@@ -5,7 +5,6 @@ from time import sleep
 from flask import Flask, jsonify, request
 from flask_caching import Cache
 from flask_graphql import GraphQLView
-# import redis
 from services import make_requests_to_services, FETCH_HANDLERS
 from filters import Always, Greater, Less, Equals, parse_date, normalize_string
 from qb_facade import QBFacade
@@ -13,7 +12,6 @@ from graphene_setup import schema
 
 
 app = Flask(__name__)
-# redis_client = redis.Redis(host="redis")
 app.config.from_mapping({"DEBUG": True, "CACHE_TYPE": "simple", "CACHE_DEFAULT_TIMEOUT": 60 * 60 * 25})
 cache = Cache(app)
 next_update_at = datetime.now()
