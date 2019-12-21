@@ -60,5 +60,13 @@ def get_user():
     return "Failed to log in", 401
 
 
+@app.route("/list_users", methods=["GET"])
+def list_users():
+    with Connection() as c:
+        rows = c.execute("SELECT id, login, last_auth FROM users").fetchall()
+        headers = [x[0] for x in c.description]
+    return jsonify([dict(zip(headers, row)) for row in rows])
+
+
 if __name__ == '__main__':
     app.run()
