@@ -17,7 +17,7 @@ cache = Cache(app)
 next_update_at = datetime.now()
 update_in_process = False
 
-app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True, context=cache))
+app.add_url_rule("/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True))
 
 
 def update_cache():
