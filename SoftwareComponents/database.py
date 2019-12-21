@@ -82,3 +82,6 @@ class QueryBuilder:
 def add_column_headers(rows, conn):
     columns = [x[0] for x in conn.description]
     return [{c: v for c, v in zip(columns, row)} for row in rows]
+
+
+cinema_db = Connection("main.db")
