@@ -35,7 +35,8 @@ def create_reservation(user_id):
         return Response("Bad service ID and/or movie ID", 400)
     with Connection() as c:
         c.execute("INSERT INTO reservations(movie_id, service_id, user_id) VALUES (?,?,?)", (movie_id, service_id, user_id))
-    return Response("Success", 201)
+        last_row_id = c.lastrowid
+    return jsonify(last_row_id)
 
 
 @app.route("/delete/<int:reservation_id>", methods=["POST"])
