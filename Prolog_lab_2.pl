@@ -1,4 +1,4 @@
-﻿:- initialization(main).
+:- initialization(main).
 
 println(X) :-
     write(X),
