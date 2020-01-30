@@ -1,4 +1,4 @@
-﻿:- initialization(main).
+:- initialization(main).
 
 print_list([]) :- write('\n').
 print_list([X|Xs]) :- write(X), write(', '), print_list(Xs).
